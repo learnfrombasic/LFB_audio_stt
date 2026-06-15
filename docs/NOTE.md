@@ -3,7 +3,16 @@
 ## 15/06/2026
 
 - Great source for architecture/positional encoding is this: https://github.com/imics-lab/positional-encoding-benchmark.git
+- Dataset:
+    - https://huggingface.co/datasets/capleaf/viVoice
+    - https://huggingface.co/datasets/NhutP/VietSpeech
+    - https://huggingface.co/datasets/thivux/phoaudiobook
+    - https://huggingface.co/datasets/fsicoli/common_voice_22_0
 
+- Model: 
+    - PhoWhisper: 
+        - https://arxiv.org/pdf/2406.02555
+        - vinai/PhoWhisper-base
 ## 14/06/2026
 
 - I kick off this project to build STT from scratch.
