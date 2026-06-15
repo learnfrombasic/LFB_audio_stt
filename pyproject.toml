@@ -1,0 +1,11 @@
+[project]
+name = "lfb-audio-stt"
+version = "0.1.0"
+description = "Small Project to review knowledge in Audio Processing, focusing on Speech-to-text"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "librosa>=0.11.0",
+    "torch>=2.12.0",
+    "torchaudio>=2.11.0",
+]

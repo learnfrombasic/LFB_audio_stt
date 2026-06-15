@@ -1,5 +1,9 @@
 #  NOTE
 
+## 15/06/2026
+
+- Great source for architecture/positional encoding is this: https://github.com/imics-lab/positional-encoding-benchmark.git
+
 ## 14/06/2026
 
 - I kick off this project to build STT from scratch.
