@@ -1,8 +1,25 @@
 from typing import Dict, List
 
+import re
+import string
 import jiwer
 
-from src.utils.calc_utils import preprocess_text
+
+def preprocess_text(text: str) -> str:
+    """
+    Preprocesses text for ASR evaluation.
+    Converts to lowercase, removes punctuation, and normalizes whitespace.
+    """
+    if not text:
+        return ""
+
+    text = text.lower()
+    # Remove punctuation
+    text = re.sub(f"[{re.escape(string.punctuation)}]", "", text)
+    # Normalize whitespace (replace multiple spaces with a single space)
+    text = " ".join(text.split())
+
+    return text
 
 
 def compute_wer(
