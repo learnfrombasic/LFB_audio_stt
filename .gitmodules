@@ -1,0 +1,6 @@
+[submodule "Audio-JEPA"]
+	path = vendors/Audio-JEPA
+	url = https://github.com/LudovicTuncay/Audio-JEPA.git
+[submodule "vendors/ijepa"]
+	path = vendors/ijepa
+	url = https://github.com/facebookresearch/ijepa.git

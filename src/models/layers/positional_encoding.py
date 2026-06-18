@@ -1,4 +1,5 @@
 # The implementations refer to this: https://github.com/imics-lab/positional-encoding-benchmark/blob/main/src/encodings/positional_encodings.py
+from typing import Type
 
 import math
 
@@ -7,7 +8,7 @@ import torch.nn as nn
 
 
 class FixedPositionalEncoding(nn.Module):
-    def __init__(self, d_model, dropout=0.1, max_len=5000):
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
         super(FixedPositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
 
@@ -21,24 +22,30 @@ class FixedPositionalEncoding(nn.Module):
         pe = pe.unsqueeze(0).transpose(0, 1)
         self.register_buffer("pe", pe)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x + self.pe[: x.size(0), :]
         return self.dropout(x)
 
 
 class LearnedPositionalEncoding(nn.Module):
-    def __init__(self, d_model, dropout=0.1, max_len=5000):
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
         super(LearnedPositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
         self.pe = nn.Parameter(torch.randn(max_len, d_model))
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x + self.pe[: x.size(0), :]
         return self.dropout(x)
 
 
 class tAPE(nn.Module):
-    def __init__(self, d_model, dropout=0.1, max_len=1024, scale_factor=1.0):
+    def __init__(
+        self,
+        d_model: int,
+        dropout: float = 0.1,
+        max_len: int = 1024,
+        scale_factor: float = 1.0,
+    ):
         super(tAPE, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
         pe = torch.zeros(max_len, d_model)
@@ -52,7 +59,7 @@ class tAPE(nn.Module):
         pe = scale_factor * pe.unsqueeze(0)
         self.register_buffer("pe", pe)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x + self.pe[:, : x.size(1)]
         return self.dropout(x)
 
@@ -60,7 +67,7 @@ class tAPE(nn.Module):
 class RotaryPositionalEncoding(nn.Module):
     """Rotary Position Embedding (RoPE) - used in models like LLaMA"""
 
-    def __init__(self, d_model, dropout=0.1, max_len=5000):
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
         super(RotaryPositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
         self.d_model = d_model
@@ -69,7 +76,7 @@ class RotaryPositionalEncoding(nn.Module):
         inv_freq = 1.0 / (10000 ** (torch.arange(0, d_model, 2).float() / d_model))
         self.register_buffer("inv_freq", inv_freq)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         seq_len = x.shape[1]
         device = x.device
 
@@ -92,7 +99,9 @@ class RotaryPositionalEncoding(nn.Module):
         x_rotated = self.apply_rotary_pos_emb(x, cos_freqs, sin_freqs)
         return self.dropout(x_rotated)
 
-    def apply_rotary_pos_emb(self, x, cos, sin):
+    def apply_rotary_pos_emb(
+        self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor
+    ) -> torch.Tensor:
         # Split the last dimension in half
         x1, x2 = x[..., ::2], x[..., 1::2]
 
@@ -107,7 +116,7 @@ class RotaryPositionalEncoding(nn.Module):
 class RelativePositionalEncoding(nn.Module):
     """Relative Positional Encoding - focuses on relative distances between tokens"""
 
-    def __init__(self, d_model, dropout=0.1, max_len=5000):
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
         super(RelativePositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
         self.d_model = d_model
@@ -118,7 +127,7 @@ class RelativePositionalEncoding(nn.Module):
             torch.randn(2 * max_len - 1, d_model) * 0.02
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         batch_size, seq_len, d_model = x.shape
 
         # Create relative position matrix
@@ -137,7 +146,13 @@ class RelativePositionalEncoding(nn.Module):
 
 
 class AbsolutePositionalEncoding(nn.Module):
-    def __init__(self, d_model, dropout=0.1, max_len=1024, scale_factor=1.0):
+    def __init__(
+        self,
+        d_model: int,
+        dropout: float = 0.1,
+        max_len: int = 1024,
+        scale_factor: float = 1.0,
+    ):
         super(AbsolutePositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
         pe = torch.zeros(max_len, d_model)
@@ -151,26 +166,29 @@ class AbsolutePositionalEncoding(nn.Module):
         pe = scale_factor * pe.unsqueeze(0)
         self.register_buffer("pe", pe)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x + self.pe[:, : x.size(1)]
         return self.dropout(x)
 
 
 class LearnablePositionalEncoding(nn.Module):
-    def __init__(self, d_model, dropout=0.1, max_len=1024):
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 1024):
         super(LearnablePositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
         self.pe = nn.Parameter(torch.empty(max_len, d_model))
         nn.init.uniform_(self.pe, -0.02, 0.02)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x + self.pe[: x.size(1), :]
         return self.dropout(x)
 
 
 def _get_relative_position_bucket(
-    relative_position, bidirectional, num_buckets, max_distance
-):
+    relative_position: torch.Tensor,
+    bidirectional: bool,
+    num_buckets: int,
+    max_distance: int,
+) -> torch.Tensor:
     """
     from https://github.com/huggingface/transformers/blob/master/src/transformers/models/t5/modeling_t5.py
     """
@@ -207,8 +225,11 @@ def _get_relative_position_bucket(
 
 
 def get_relative_positions(
-    seq_len, bidirectional=True, num_buckets=32, max_distance=128
-):
+    seq_len: int,
+    bidirectional: bool = True,
+    num_buckets: int = 32,
+    max_distance: int = 128,
+) -> torch.Tensor:
     x = torch.arange(seq_len)[None, :]
     y = torch.arange(seq_len)[:, None]
     relative_positions = _get_relative_position_bucket(
@@ -218,14 +239,14 @@ def get_relative_positions(
 
 
 class SineSPE(nn.Module):
-    def __init__(self, in_features, max_len=512):
+    def __init__(self, in_features: int, max_len: int = 512):
         super(SineSPE, self).__init__()
         self.in_features = in_features
         self.max_len = max_len
         self.position = nn.Parameter(torch.zeros(1, max_len, in_features))
         self.register_buffer("sine", self._generate_sine_encoding())
 
-    def _generate_sine_encoding(self):
+    def _generate_sine_encoding(self) -> torch.Tensor:
         position = torch.arange(self.max_len).unsqueeze(1).float()
         div_term = torch.exp(
             torch.arange(0, self.in_features, 2).float()
@@ -236,12 +257,18 @@ class SineSPE(nn.Module):
         encoding[:, 1::2] = torch.cos(position * div_term)
         return encoding
 
-    def forward(self, seq_len):
+    def forward(self, seq_len: int) -> torch.Tensor:
         return self.sine[:seq_len, :].unsqueeze(0)  # Shape: (1, seq_len, in_features)
 
 
 class ConvSPE(nn.Module):
-    def __init__(self, num_heads, in_features, kernel_size=3, num_realizations=1):
+    def __init__(
+        self,
+        num_heads: int,
+        in_features: int,
+        kernel_size: int = 3,
+        num_realizations: int = 1,
+    ):
         super(ConvSPE, self).__init__()
         padding = (
             kernel_size // 2
@@ -257,7 +284,7 @@ class ConvSPE(nn.Module):
         self.kernel_size = kernel_size
         self.num_realizations = num_realizations
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x should be of shape (batch_size, seq_len, in_features)
         x = x.permute(0, 2, 1)  # Change shape to (batch_size, in_features, seq_len)
         x = self.conv(x)  # Apply convolution
@@ -269,7 +296,7 @@ class ConvSPE(nn.Module):
 
 # Temporal Positional Encoding (T-PE)
 class TemporalPositionalEncoding(nn.Module):
-    def __init__(self, d_model, max_len=896):  # Assuming 896 timesteps
+    def __init__(self, d_model: int, max_len: int = 896):  # Assuming 896 timesteps
         super(TemporalPositionalEncoding, self).__init__()
         pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
@@ -281,23 +308,23 @@ class TemporalPositionalEncoding(nn.Module):
         pe[:, 1::2] = torch.cos(position * div_term)
         self.register_buffer("pe", pe)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         seq_len = x.size(1)
         return self.pe[:seq_len, :].unsqueeze(0).expand(x.size(0), -1, -1)
 
 
 # Variable Positional Encoding for handling multivariate data
 class VariablePositionalEncoding(nn.Module):
-    def __init__(self, d_model, num_variables):
+    def __init__(self, d_model: int, num_variables: int):
         super(VariablePositionalEncoding, self).__init__()
         self.variable_embedding = nn.Embedding(num_variables, d_model)
 
-    def forward(self, x, variable_idx):
+    def forward(self, x: torch.Tensor, variable_idx: torch.Tensor) -> torch.Tensor:
         variable_embed = self.variable_embedding(variable_idx)
         return x + variable_embed.unsqueeze(0)
 
 
-def get_pos_encoder(pos_encoding):
+def get_pos_encoder(pos_encoding: str) -> Type[nn.Module]:
     if pos_encoding == "fixed":
         return FixedPositionalEncoding
     elif pos_encoding == "learned":

@@ -1,7 +1,7 @@
-from typing import Dict, List
-
 import re
 import string
+from typing import Dict, List
+
 import jiwer
 
 
